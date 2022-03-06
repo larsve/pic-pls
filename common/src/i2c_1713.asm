@@ -173,7 +173,6 @@ Do_MSSP_ISR
     bsf     I2C_State, i2cBusy      ; Set I2C bus busy flag
     goto    Do_I2C_Read             ; Read next byte into pre-fetch buffer
 
-
 I2C_Write                           ; I2C (master) Write
     banksel SSP1BUF
     movfw   SSP1BUF                 ; A read from SSP1BUF clears th BF flag in SSP1STAT

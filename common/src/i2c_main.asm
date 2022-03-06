@@ -42,6 +42,10 @@ I2C_DataSize += I2C_BaxiBlockSize
 I2C_DataSize += I2C_DHT11BlockSize
 #endif
 
+#ifdef I2C_SendLcd
+I2C_DataSize += I2C_LcdBlockSize
+#endif
+
 #ifdef I2C_SendSpd
 I2C_DataSize += I2C_SpdBlockSize
 #endif
@@ -52,6 +56,14 @@ I2C_DataSize += I2C_StatusBlockSize
 
 #ifdef I2C_SendUptime
 I2C_DataSize += I2C_Counter4BlockSize
+#endif
+
+#ifdef I2C_SendPvPic
+I2C_DataSize += I2C_PvPicBlockSize
+#endif
+
+#ifdef I2C_SendSolPic
+I2C_DataSize += I2C_SolPicBlockSize
 #endif
 
 ; I2C transmission block size (including header payload and trailing CRC)
@@ -133,6 +145,7 @@ I2C_TxSize      EQU I2C_HeaderSize + I2C_DataSize + 1
     ; From BaxiController.asm
     Extern  Alarms
     Extern  RState
+    Extern  DState
     Extern  MaxChn
     Extern  Inmatningar
     Extern  Backningar
@@ -230,6 +243,7 @@ Reset_I2C
     clrf    BufferB2
     clrf    BufferB3
     clrf    BufferB4
+    clrf    RxPtr
 
     goto    Init_I2C_HW
 
@@ -259,6 +273,17 @@ Do_I2C
 ; Do I2C Write
 ;   I2C master is writing data to us. Read byte is in ISRTemp.
 ;**********************************************************************
+#ifdef __16F886
+Do_I2C_Write                        ; I2C (master) Write
+    banksel I2CData
+
+    ; TODO: Save byte in ISRTemp to buffer
+
+    movlw   .10
+    movwf   I2CTO
+    return
+#endif
+#ifdef __16F1713
 Do_I2C_Write                        ; I2C (master) Write
     ; Set INDF0 to point to correct place in buffer to write to.
     banksel RxPtr
@@ -284,6 +309,7 @@ Do_I2C_Write                        ; I2C (master) Write
     clrf    RxPtr               ; C = 1, so RxPtr >= i2cRxSize = Reset RxPrt
 
     return
+#endif
 
 ;**********************************************************************
 ; Do I2C Read
@@ -311,6 +337,7 @@ Do_I2C_Read                     ; I2C (master) Read
     incf    PCLATH,F
     movwf   PCL
 I2C_READ_TABLE
+    ;<editor-fold defaultstate="collapsed" desc="16 Byte --- Header ------------------------">
     ; I2C Header 0x00 - 0x0f
     movlw   'Y'                 ;  1 - Magic[0]
     goto    WRITE_SSBUF
@@ -334,9 +361,9 @@ I2C_READ_TABLE
     goto    WRITE_SSBUF
     movlw   VerMajor            ; 11 - Version information (Major)
     goto    WRITE_SSBUF
-    movlw   VerMiddle           ; 12 - Version information (Middle)
+    movlw   VerMinor            ; 12 - Version information (Minor)
     goto    WRITE_SSBUF
-    movlw   VerMinor            ; 13 - Version information (Minor)
+    movlw   VerPatch            ; 13 - Version information (Patch)
     goto    WRITE_SSBUF
     movlw   VerBuild            ; 14 - Version information (Build)
     goto    WRITE_SSBUF
@@ -344,6 +371,7 @@ I2C_READ_TABLE
     goto    WRITE_SSBUF
     goto    WRITE_CRC           ; 16 - CRC
     nop
+;</editor-fold>
 
     ;<editor-fold defaultstate="collapsed" desc="--- ADC data block --------------">
 #ifdef I2C_SendAdc
@@ -605,9 +633,10 @@ I2C_READ_TABLE
     goto    WRITE_SSBUF
     movfw   BufferB4            ; 32 - PiRevTm
     goto    WRITE_SSBUF
+    ; DState ?
 #endif ;}
 ;</editor-fold>
-    ;<editor-fold defaultstate="collapsed" desc="--- I2C_SendDht11 ---------------">
+    ;<editor-fold defaultstate="collapsed" desc="--- DHT11 data block ------------">
 #ifdef I2C_SendDht11
     ; DHT11 special data block...
     movlw   I2C_DHT11BlockSize  ;  1 - Block size
@@ -630,7 +659,32 @@ I2C_READ_TABLE
     goto    WRITE_SSBUF
 #endif
 ;</editor-fold>
-    ;<editor-fold defaultstate="collapsed" desc="--- SPD data --------------------">
+    ;<editor-fold defaultstate="collapsed" desc="--- LCD data block --------------">
+#ifdef I2C_SendLcd
+    movlw   I2C_LcdBlockSize    ;  1 - Block size
+    goto    WRITE_SSBUF
+    movlw   I2C_LcdBlockID      ;  2 - Block ID Type
+    goto    WRITE_SSBUF
+    movlw   I2C_LcdBlockVer     ;  3 - Block ID Version
+    goto    WRITE_SSBUF
+
+    movlw   .0                  ;  4 - Block ID Name Length
+    goto    WRITE_SSBUF
+    movlw   LCD_X               ;  5 - LCD X
+    goto    WRITE_SSBUF
+    movlw   LCD_Y               ;  6 - LCD Y
+    goto    WRITE_SSBUF
+    movlw   0x00                ;  7 - LCD features #1
+    goto    WRITE_SSBUF
+    movlw   0x00                ;  8 - LCD features #1
+    goto    WRITE_SSBUF
+    movlw   0x00                ;  9 - LCD features #1
+    goto    WRITE_SSBUF
+    movlw   0x00                ; 10 - LCD features #1
+    goto    WRITE_SSBUF
+#endif
+;</editor-fold>
+    ;<editor-fold defaultstate="collapsed" desc="--- SPD data block --------------">
 #ifdef I2C_SendSpd
     movlw   I2C_SpdBlockSize    ;  1 - Block size
     goto    WRITE_SSBUF
@@ -724,6 +778,7 @@ WRITE_SSBUF
     movwf   ReadCache
     return
 
+    ;<editor-fold defaultstate="collapsed" desc="WRITE_CRC">
 WRITE_CRC                       ; Add a number (42) to CRC if it's = 0xff
     movfw   I2Ccrc
     xorlw   0xff
@@ -733,13 +788,9 @@ WRITE_CRC                       ; Add a number (42) to CRC if it's = 0xff
     addwf   I2Ccrc, F
     movfw   I2Ccrc
     goto    WRITE_SSBUF
-;    movwf  ReadCache
-;    ; Reset CRC if
-;    movfw   I2CData
-;    skpnz
-;    clrf    I2Ccrc
-;    return
+;</editor-fold>
 
+    ;<editor-fold defaultstate="collapsed" desc="WRITE_SSBUF_AND_COPY_DHT11">
 #ifdef I2C_SendDht11
 #ifdef __16F1713
 WRITE_SSBUF_AND_COPY_DHT11
@@ -761,7 +812,9 @@ WRITE_SSBUF_AND_COPY_DHT11
 #endif
     return
 #endif
+;</editor-fold>
 
+    ;<editor-fold defaultstate="collapsed" desc="WRITE_SSBUF_AND_COPY_UPTIME">
 WRITE_SSBUF_AND_COPY_UPTIME
     ; Start to write value in W to I2C register and start the sending..
     movwf   ReadCache
@@ -796,7 +849,9 @@ WRITE_SSBUF_AND_COPY_UPTIME
     movwf   BufferB4
 #endif
     return
+;</editor-fold>
 
+    ;<editor-fold defaultstate="collapsed" desc="BaxiController WRITE_SSBUF_...">
 #ifdef BaxiController           ; Baxi (ADC MAX data block and Baxi special data block) ;{
 WRITE_SSBUF_AND_COPY_Inmtningr
     movwf   ReadCache
@@ -875,6 +930,7 @@ WRITE_SSBUF_AND_COPY_Status1
     movwi   FSR0++              ; OCLimitL -> BufferB4
     banksel BufferB1
     return
+
 WRITE_SSBUF_AND_COPY_Status2
     movwf   ReadCache
 
@@ -900,6 +956,7 @@ WRITE_SSBUF_AND_COPY_Status2
 
     banksel BufferB1
     return
+
 WRITE_SSBUF_AND_COPY_Backningar
     movwf   ReadCache
 
@@ -918,6 +975,7 @@ WRITE_SSBUF_AND_COPY_Backningar
 
     banksel BufferB1
     return
+
 WRITE_SSBUF_AND_COPY_Status3
     movwf   ReadCache
 
@@ -939,6 +997,7 @@ WRITE_SSBUF_AND_COPY_Status3
     banksel BufferB1
     return
 #endif
+;</editor-fold>
 
 
 

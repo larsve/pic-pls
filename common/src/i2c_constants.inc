@@ -39,6 +39,10 @@ I2C_Counter4BlockID     EQU 0x04
 I2C_Counter4BlockVer    EQU 0x01
 I2C_Counter4BlockSize   EQU 11
 
+I2C_LcdBlockSize        EQU .10
+I2C_LcdBlockID          EQU 0x05
+I2C_LcdBlockVer         EQU 0x01
+
 I2C_BaxiBlockID         EQU 0xfe
 I2C_BaxiBlockVer        EQU 0x03
 I2C_BaxiBlockSize       EQU 32
@@ -46,3 +50,11 @@ I2C_BaxiBlockSize       EQU 32
 I2C_DHT11BlockID        EQU 0xfe
 I2C_DHT11BlockVer       EQU 0x01
 I2C_DHT11BlockSize      EQU 8
+
+I2C_PvPicBlockID        EQU 0xfe
+I2C_PvPicBlockVer       EQU 0x01
+I2C_PvPicBlockSize      EQU 36
+
+I2C_SolPicBlockID       EQU 0xfe
+I2C_SolPicBlockVer      EQU 0x01
+I2C_SolPicBlockSize     EQU 40

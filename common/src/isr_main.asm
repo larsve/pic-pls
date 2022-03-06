@@ -102,12 +102,6 @@ Init_MainISR
 ;<editor-fold defaultstate="collapsed" desc="PIC16F886 Main ISR">
 #ifdef  __16F886
 Do_MainISR
-;    movwf   W_save             ; save off current W register contents
-;   swapf   STATUS, w           ; move status register into W register
-;   movwf   STATUS_save         ; save off contents of STATUS register
-;   movfw   PCLATH
-;   movwf   PCLATH_save
-
     ; Save FSR pointer
     banksel FSR_save
     movfw   FSR
@@ -213,7 +207,6 @@ NoPir2Int
 
     movfw   PCLATH_save
     movwf   PCLATH
-    ;swapf  STATUS_save, f      ; retrieve copy of STATUS register
     swapf   STATUS_save, w      ; retrieve copy of STATUS register
     movwf   STATUS              ; restore pre-isr STATUS register contents
     swapf   W_save,f

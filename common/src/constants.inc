@@ -9,6 +9,17 @@
 ;**********************************************************************
 
 
+; *** Reset flags *****************************************************
+
+rfPOR       EQU 0x07        ; Power On Reset
+rfBOR       EQU 0x06        ; Brown-out Reset
+rfWDT       EQU 0x05        ; Watchdog Timeout Rest
+rfSTKOF     EQU 0x04        ; Stack overflow reset
+rfSTKUF     EQU 0x03        ; Stack underflow reset
+rfMCLR      EQU 0x02        ; MClear Reset
+rfRI        EQU 0x01        ; Reset instruction
+
+
 ; *** Input/Output Constants ******************************************
 
 ;<editor-fold defaultstate="collapsed" desc="BaxiController">
@@ -86,6 +97,25 @@ outRunLed       EQU 0x07    ; Program Running LED
 ; Output constants
 outLED1         EQU 0x07    ; LED #1
 outLED2         EQU 0x06    ; LED #2
+#endif
+;</editor-fold>
+
+;<editor-fold defaultstate="collapsed" desc="LcdDisplay">
+#ifdef LcdDisplay
+; Input constants
+;in         EQU 0x07    ;
+
+; Output constants
+outRunLed   EQU 0x07    ; Program Running LED
+outE        EQU 0x06    ; LCD Enable
+outRS       EQU 0x05    ; LCD Register Select
+outRW       EQU 0x04    ; LCD Read/Write
+#ifndef HW_PWM
+outBL       EQU 0x03    ; LCD Backlight
+#endif
+;out        EQU 0x02    ;
+;out        EQU 0x01    ;
+;out        EQU 0x00    ;
 #endif
 ;</editor-fold>
 
@@ -172,6 +202,36 @@ outRunLed       EQU 0x07    ; Program Running LED
 
 ; Output constants
 outRunLed       EQU 0x07    ; Program Running LED
+#endif
+;</editor-fold>
+
+;<editor-fold defaultstate="collapsed" desc="SolPic">
+#ifdef SolPic
+; Input constants
+; Input 1
+i1AlUEp     EQU 0x07        ; Upper Altitude Endpoint
+i1AlLEp     EQU 0x06        ; Lower Altitude Endpoint
+i1AzUEp     EQU 0x05        ; Upper Azimuth Endpoint
+i1AzLEp     EQU 0x04        ; Lower Azimuth Endpoint
+i1Wind      EQU 0x03        ; Wind speed
+i1AlPg      EQU 0x02        ; Altitude position pulses
+i1AzPg2     EQU 0x01        ; Azimuth position pulse counter
+i1AzPg1     EQU 0x00        ; Azimuth position pulse counter
+; Input 2
+i2AlDec     EQU 0x05        ; Altitude -
+i2AlInc     EQU 0x04        ; Altitude +
+i2HmPwr     EQU 0x03        ; Hydraulic motor power
+i2AzDec     EQU 0x02        ; Azimuth -
+i2AzInc     EQU 0x01        ; Azimuth +
+
+; Output constants
+;outAcsEn   EQU 0x06        ; ACS712 enable
+outAlDec    EQU 0x05        ; Altitude -
+outAlInc    EQU 0x04        ; Altitude +
+outHmPwr    EQU 0x03        ; Hydraulic motor power
+outAzDec    EQU 0x02        ; Azimuth -
+outAzInc    EQU 0x01        ; Azimuth +
+outRunLed   EQU 0x00        ; Program Running LED
 #endif
 ;</editor-fold>
 

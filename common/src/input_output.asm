@@ -139,7 +139,7 @@ Init_IO
     movwf   WPUB
     movlw   PortC_WPU
     movwf   WPUC
-    #if PortA_WPU || PortB_WPU ||PortC_WPU != 0
+    #if PortA_WPU || PortB_WPU || PortC_WPU != 0
     banksel OPTION_REG
     bcf     OPTION_REG, NOT_WPUEN; Enable weak pullup's
     #endif
@@ -175,26 +175,26 @@ Init_IO
 
     ; Setup I2C peripheral..
     banksel PPSLOCK
-    movlw   0x55        ; Issue the Lock/Unlock sequence..
+    movlw   0x55                ; Issue the Lock/Unlock sequence..
     movwf   PPSLOCK
     movlw   0xaa
     movwf   PPSLOCK
     bcf     PPSLOCK, PPSLOCKED  ; Unlock periheral registers
 
     banksel RC3PPS
-    movlw   B'00010000'     ; Set RC3 as SCL output pin
+    movlw   B'00010000'         ; Set RC3 as SCL output pin
     movwf   RC3PPS
-    movlw   B'00010001'     ; Set RC4 as SDA output pin
+    movlw   B'00010001'         ; Set RC4 as SDA output pin
     movwf   RC4PPS
 
     banksel SSPCLKPPS
-    movlw   B'00010011'     ; Set SSP CLK (I2C SCL) input to PORTC, Bit 3 (RC3)
+    movlw   B'00010011'         ; Set SSP CLK (I2C SCL) input to PORTC, Bit 3 (RC3)
     movwf   SSPCLKPPS
-    movlw   B'00010100'     ; Set SSP DAT (I2C SDA) input to PORTC, Bit 4 (RC4)
+    movlw   B'00010100'         ; Set SSP DAT (I2C SDA) input to PORTC, Bit 4 (RC4)
     movwf   SSPDATPPS
 
     banksel PPSLOCK
-    movlw   0x55        ; Issue the Lock/Unlock sequence..
+    movlw   0x55                ; Issue the Lock/Unlock sequence..
     movwf   PPSLOCK
     movlw   0xaa
     movwf   PPSLOCK
@@ -212,7 +212,7 @@ Do_Input
     banksel PORTA
     clrf    Temp                ; Clear Temp Input
 
-    ; Läs ingångar och sätt motsvarande bit i Temp variablen
+    ; Read input pins and set matching bits in the Temp variable
     ;<editor-fold defaultstate="collapsed" desc="BaxiController">
 #ifdef BaxiController
     ; Styrsignal från Baxi (aktiv låg)
@@ -294,6 +294,17 @@ Do_Output
     bcf     CurPwrPin
     btfsc   Output, outCurPwr
     bsf     CurPwrPin
+#endif
+;</editor-fold>
+    ;<editor-fold defaultstate="collapsed" desc="LcdDisplay output">
+#ifdef LcdDisplay
+#ifndef HW_PWM
+    ; LCD Backlight
+    btfss   Output, outBL
+    bcf LcdBlPin
+    btfsc   Output, outBL
+    bsf LcdBlPin
+#endif
 #endif
 ;</editor-fold>
     ;<editor-fold defaultstate="collapsed" desc="LedDisplay output">

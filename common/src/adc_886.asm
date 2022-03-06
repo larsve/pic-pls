@@ -8,13 +8,11 @@
 ;
 ;**********************************************************************
 
-    #include    "MCU_Defines.inc"
-    #include    "..\src\Defines.inc"
-    #include    "ADC.inc"
-    #include    "ISR_Timer.inc"
-    #include    "Macros.inc"
-
-    errorlevel  -302            ; suppress message 302 from list file
+    #include    "mcu_defines.inc"
+    #include    "defines.inc"
+    #include    "adc.inc"
+    #include    "isr_timer.inc"
+    #include    "macros.inc"
 
 ;***** Global declarations ********************************************
     ; Methods

@@ -38,6 +38,7 @@ TT1000      res 1
 TT10000     res 1
 
 ; Timer preload values (might need to be adjusted if code in ISR_Timer is updated)
+;<editor-fold defaultstate="collapsed" desc="PIC16F886">
 #ifdef __16F886
 #if OSC == 20
 TCntHi      EQU 0xec    ; ec80 = 1.000000ms @ 20MHz
@@ -52,29 +53,35 @@ TCntHi      EQU 0xfc    ; fc20 = 1.000000ms @ 4MHz
 TCntLo      EQU 0x20
 #endif
 #endif
-
+;</editor-fold>
+;<editor-fold defaultstate="collapsed" desc="PIC16F1713">
 #ifdef __16F1713
 #if OSC == 32
-TCntHi      EQU 0xe0    ; e0c8 = 1.000000ms @ 32MHz
-TCntLo      EQU 0xc8
+TCntHi      EQU 0xe0    ; 0xe0c8 ? 0.999999ms @ 32MHz (on average)
+TCntLo      EQU 0xc8    ; jitter ? ±9µs on TimerTick_1ms (idle)
 #endif
 #if OSC == 16
-TCntHi      EQU 0xf0    ; f068 = 1.000000ms @ 16MHz
-TCntLo      EQU 0x68
+TCntHi      EQU 0xf0    ; 0xf068 ? 1.000001ms @ 16MHz (on average)
+TCntLo      EQU 0x68    ; jitter ? ±12µs on TimerTick_1ms (idle)
 #endif
 #if OSC == 8
-TCntHi      EQU 0xf8    ; f838 = 1.000000ms @ 8MHz
-TCntLo      EQU 0x38
+TCntHi      EQU 0xf8    ; 0xf838 ? 1.000002ms @ 8MHz (on average)
+TCntLo      EQU 0x38    ; jitter ? ±26µs on TimerTick_1ms (idle)
 #endif
 #if OSC == 4
-TCntHi      EQU 0xfc    ; fc20 = 1.000000ms @ 4MHz
-TCntLo      EQU 0x20
+TCntHi      EQU 0xfc    ; 0xfc20 ? 0.999999ms @ 4MHz (on average)
+TCntLo      EQU 0x20    ; jitter ? ±60µs on TimerTick_1ms (idle)
 #endif
 #if OSC == 2
+TCntHi      EQU 0xfe    ; 0xfe15 ? 0.999623ms @ 2MHz (on average)
+TCntLo      EQU 0x15    ; jitter ? -126µs to +46µs on TimerTick_1ms (idle)
 #endif
 #if OSC == 1
+TCntHi      EQU 0xff    ; 0xff0f ? 1.001320ms @ 1MHz (on average)
+TCntLo      EQU 0x0f    ; jitter ? -372µs to +504µs on TimerTick_1ms (idle)
 #endif
 #endif
+;</editor-fold>
 
 ;***** Code Section ***************************************************
 PROG0       code

@@ -132,6 +132,9 @@ Main_Loop
     pagesel Do_Output
 #endif
     call    Do_Output
+#ifdef WDT
+    clrwdt
+#endif
     goto    Main_Loop
 
     END                         ; directive 'end of program'

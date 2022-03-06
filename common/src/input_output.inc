@@ -1,6 +1,6 @@
 ;**********************************************************************
 ; Description:
-;   Define all fysical input/output. No manipulation should be done
+;   Define all physical input/output. No manipulation should be done
 ;   directly, all manipulation of pin input/output shold be done in the
 ;   Do_Input/Do_Output methods.
 ;
@@ -77,6 +77,23 @@
     #define PortA_ADC       B'00011111'         ; All possible as analog inputs
     #define LED1Pin         PORTA, 0x07         ; LED #1
     #define LED2Pin         PORTA, 0x06         ; LED #2
+#endif
+;</editor-fold>
+;<editor-fold defaultstate="collapsed" desc="LcdDisplay">
+#ifdef LcdDisplay
+    ;***** Port A I/O, 1 = Input, 0 = Output, A = Analog
+    ; RA7 : 1 = Oanvänd
+    ; RA6 : 1 = Oanvänd
+    ; RA5 : 1 = Oanvänd
+    ; RA4 : 1 = Oanvänd
+    ; RA3 : 1 = Oanvänd
+    ; RA2 : 1 = Oanvänd
+    ; RA1 : 1 = Oanvänd
+    ; RA0 : 0 = Running LED pin
+    #define PortA_TRIS      B'11111110'     ; PORTA Data Direction Register
+    #define PortA_ADC       B'00000000'     ; Bara RA2-3/AN2-3 som analoga ingångar
+    #define PortA_WPU       B'00000000'     ; Disabled Pullup on PORT A
+    #define RunLedPin       PORTA, 0x00     ; Running LED pin
 #endif
 ;</editor-fold>
 ;<editor-fold defaultstate="collapsed" desc="LedDisplay">
@@ -298,6 +315,23 @@
     #define PortBIO         B'11111111'         ; PORTB Data Direction Register
     #define PortB_ADC       B'00111111'         ; Alla som analoga ingångar
     #define PortB_WPU       B'00000000'         ; Disabled Pullup on PORT B
+#endif
+;</editor-fold>
+;<editor-fold defaultstate="collapsed" desc="LcdDisplay">
+#ifdef LcdDisplay
+    ;***** Port B I/O, 1 = Input, 0 = Output, A = Analog
+    ; RB7 : 0 = Data 7
+    ; RB6 : 0 = Data 6
+    ; RB5 : 0 = Data 5
+    ; RB4 : 0 = Data 4
+    ; RB3 : 0 = Data 3
+    ; RB2 : 0 = Data 2
+    ; RB1 : 0 = Data 1
+    ; RB0 : 0 = Data 0
+    #define PortB_TRIS      B'00000000'     ; PORTB Data Direction Register
+    #define PortB_ADC       B'00000000'     ; All possible as analog inputs
+    #define PortB_WPU       B'00000000'     ; Disabled Pullup on PORT B
+    ; LCD Data
 #endif
 ;</editor-fold>
 ;<editor-fold defaultstate="collapsed" desc="LedDisplay">
@@ -555,6 +589,28 @@
     ; RC1 : 1 = Oanvänd
     ; RC0 : 1 = Oanvänd
     #define PortCIO         B'11111111'         ; PORTC Data Direction Register
+#endif
+;</editor-fold>
+;<editor-fold defaultstate="collapsed" desc="LcdDisplay">
+#ifdef LcdDisplay
+    ;***** Port C I/O, 1 = Input, 0 = Output, A = Analog
+    ; RC7 : 0 = LCD Enable
+    ; RC6 : 0 = LCD R/W
+    ; RC5 : 0 = LCD RS
+    ; RC4 : 1 = I2C SDA
+    ; RC3 : 1 = I2C SCL
+    ; RC2 : 0 = Backlight PWM output
+    ; RC1 : 1 = Oanvänd
+    ; RC0 : 1 = Oanvänd
+    #define PortC_TRIS      B'00011011'     ; PORTC Data Direction Register
+    #define PortC_ADC       B'00000000'     ; Alla som analoga ingångar
+    #define PortC_WPU       B'00000000'     ; Disabled Pullup on PORT C
+    #define LcdEPin         PORTC, 0x07     ; LCD Enable pin
+    #define LcdRwPin        PORTC, 0x06     ; LCD R/W pin
+    #define LcdRsPin        PORTC, 0x05     ; LCD RS pin
+#ifndef HW_PWM
+    #define LcdBlPin        PORTC, 0x02     ; LCD Backlight pin
+#endif
 #endif
 ;</editor-fold>
 ;<editor-fold defaultstate="collapsed" desc="LedDisplay">

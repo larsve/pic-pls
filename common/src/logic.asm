@@ -1,7 +1,7 @@
 ;**********************************************************************
 ; Description:
 ;   Main logic, this should be the router or switch that monitors and
-;   controls the other parts and make them work with eachother.
+;   controls the other parts and make them work with each other.
 ;   Note. The A/D part should be moved to a separate unit.
 ;
 ;**********************************************************************
@@ -82,8 +82,9 @@ PROG0       code
 
 ;**********************************************************************
 ; Init Logic
-;   Initializes variables and read default values from EEprom.
+;   Initializes variables and set default values.
 ;**********************************************************************
+    ;<editor-fold defaultstate="collapsed" desc="Init_Logic">
 Init_Logic
     ; Clear/init variables
     banksel LState
@@ -95,6 +96,7 @@ Init_Logic
 #endif
 
     return
+;</editor-fold>
 
 ;**********************************************************************
 ; Do Logic

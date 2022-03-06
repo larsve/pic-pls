@@ -10,6 +10,6 @@
 
 ; Global version information
 VerMajor    EQU 2
-VerMiddle   EQU 4
-VerMinor    EQU 1
+VerMinor    EQU 4
+VerPatch    EQU 1
 VerBuild    EQU 0
