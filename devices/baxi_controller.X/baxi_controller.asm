@@ -1093,14 +1093,6 @@ AutoRevDelay
 ;**********************************************************************
 Do_UpdateBaxiRunStates
     banksel RState
-;RS_Running     EQU 0x00        ; Baxi is running (we get a run forward signal from baxi)
-;RS_BaxiK       EQU 0x01        ; Baxi (native)
-;RS_BaxiT       EQU 0x02        ; Baxi source with PIC/Triac control
-;RS_PIC         EQU 0x03        ; PIC/Triac control with timings from master (PC/raspberry PI)
-;RS_Stuck       EQU 0x04        ; Stuck (can only reverse)
-;RS_AutoRev     EQU 0x05        ; Auto reverse active
-;RS_Rev         EQU 0x06        ; Reverse
-;RS_Fwd         EQU 0x07        ; Forward
 
     ; Check if we should switch drive mode..
     movfw   DState
@@ -1130,17 +1122,20 @@ Do_UpdateBaxiRunStates
     btfsc   DState, RS_PIC
     bsf     RState, RS_PIC
 
+SameDriveMode
     ; If RS_PIC is active, check that LastPiTm > 0 before we switch, use RS_BaxiT as fallback when LastPiTm = 0
     btfss   RState, RS_PIC
-    goto    SameDriveMode
+    goto    CheckStuckState
     movfw   LastRPiTm
     skpz
-    goto    SameDriveMode
+    goto    CheckStuckState
+    ; LastRPiTm is zero, revert back to Baxi/Triac control
     bcf     RState, RS_PIC
     bsf     RState, RS_BaxiT
     clrf    PiState
+    return
 
-SameDriveMode
+CheckStuckState
     ; Start to check if the RS_Stuck state is set
     btfss   RState, RS_Stuck
     goto    SkipStuckState
@@ -1163,10 +1158,11 @@ SkipStuckState
     btfsc   InputD, inBaxiFwd   ; there is a change on
     movwf   BaxiRunTmr          ; the inBaxi signal.
 
-    bcf     RState, RS_Running  ; Clear RS_Running flag.
-    movfw   BaxiRunTmr          ; Set RS_Running flag if
-    skpz                        ; BaxiRunTmr > 0.
+    movf    BaxiRunTmr, f       ; Clear RS_Running flag if
+    skpz                        ; BaxiRunTmr = 0
     bsf     RState, RS_Running
+    skpnz
+    bcf     RState, RS_Running
 
     ; Decrease BaxiRunTmr if RS_Running flag is set...
     btfss   RState, RS_Running
@@ -1236,7 +1232,7 @@ PicRunState
 
     movlp   PicRunStateSubstate
     movfw   PiState
-    andlw   0x0f
+    andlw   0x07
     addlw   PicRunStateSubstate
     btfsc   STATUS, C
     incf    PCLATH,F
@@ -1244,14 +1240,14 @@ PicRunState
 PicRunStateSubstate
     goto    PicRunStateSubstate00   ; Idle init
     goto    PicRunStateSubstate01   ; Idle/Wait between inputs
-    goto    PicRunStateSubstate02   ; Input (normal)
-    goto    PicRunStateSubstate03   ; Input (reverse extra input)
-    goto    PicRunStateSubstate04   ; Reverse
-    ; TODO
-    ; We control the timing as long as we get regular updates of the time.
-    ; if we don't get updates for a while (time?), we revert back to the
-    ; RS_BaxiT state. If we once have been in RS_PIC, but reverted to RS_BaxiT
-    ; we should go back to RS_PIC when we get updates again.
+    goto    PicRunStateSubstate02   ; Check RS_Running
+    goto    PicRunStateSubstate03   ; Input (normal)
+    goto    PicRunStateSubstate04   ; Input (reverse extra input)
+    goto    PicRunStateSubstate05   ; Reverse
+    nop     ; 0x06
+    clrf    PiState                 ; PiState error, clear and disable any output
+    bcf     RState, RS_Rev
+    bcf     RState, RS_Fwd
     return
 
 PicRunStateSubstate00               ; Idle init
@@ -1282,13 +1278,22 @@ PicRunStateSubstate01               ; Idle/Wait between inputs
     incf    PiState, f
     ClearCounter    PiCnt, 2
 
+    return
+
+PicRunStateSubstate02               ; Check RS_Running
+    btfss   RState, RS_Running      ; Make sure that Baxi is still sending a input signal before we enable input
+    return
+
+    ; Prepare next step
+    incf    PiState, f
+
     ; Enable TriacFwd if PiActTm > 0
     movfw   PiActTm
     skpz
     bsf     RState, RS_Fwd
     return
 
-PicRunStateSubstate02               ; Input (normal)
+PicRunStateSubstate03               ; Input (normal)
     btfss   Timer_Tick, TimerTick_100ms
     return
     incf    PiCnt, f
@@ -1309,7 +1314,7 @@ PicRunStateSubstate02               ; Input (normal)
     bcf     RState, RS_Fwd
     return
 
-PicRunStateSubstate03               ; Input (reverse extra input)
+PicRunStateSubstate04               ; Input (reverse extra input)
     btfss   Timer_Tick, TimerTick_100ms
     return
     incf    PiCnt, f
@@ -1326,7 +1331,7 @@ PicRunStateSubstate03               ; Input (reverse extra input)
     bcf     RState, RS_Fwd
     return
 
-PicRunStateSubstate04               ; Reverse
+PicRunStateSubstate05               ; Reverse
     bsf     RState, RS_Rev
     btfss   Timer_Tick, TimerTick_100ms
     return

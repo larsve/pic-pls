@@ -1,5 +1,6 @@
 **/*.X/build
 **/*.X/debug
+**/*.X/disassembly
 **/*.X/dist
 **/*.X/nbproject/*
 !**/*.X/nbproject/configurations.xml
