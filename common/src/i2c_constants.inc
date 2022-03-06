@@ -45,7 +45,7 @@ I2C_LcdBlockVer         EQU 0x01
 
 I2C_BaxiBlockID         EQU 0xfe
 I2C_BaxiBlockVer        EQU 0x03
-I2C_BaxiBlockSize       EQU 32
+I2C_BaxiBlockSize       EQU 33
 
 I2C_DHT11BlockID        EQU 0xfe
 I2C_DHT11BlockVer       EQU 0x01

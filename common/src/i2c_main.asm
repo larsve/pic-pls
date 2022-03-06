@@ -632,8 +632,9 @@ I2C_READ_TABLE
     movfw   BufferB3            ; 31 - PiActTm
     goto    WRITE_SSBUF
     movfw   BufferB4            ; 32 - PiRevTm
+    goto    WRITE_SSBUF_AND_COPY_DState
+    movfw   BufferB1            ; 33 - DState
     goto    WRITE_SSBUF
-    ; DState ?
 #endif ;}
 ;</editor-fold>
     ;<editor-fold defaultstate="collapsed" desc="--- DHT11 data block ------------">
@@ -995,6 +996,16 @@ WRITE_SSBUF_AND_COPY_Status3
     movwi   FSR0++              ; PiRevTm -> BufferB4
 
     banksel BufferB1
+    return
+
+WRITE_SSBUF_AND_COPY_DState
+    movwf   ReadCache
+
+    banksel DState
+    movfw   DState
+
+    banksel BufferB1
+    movwf   BufferB1
     return
 #endif
 ;</editor-fold>
