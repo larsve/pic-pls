@@ -1112,12 +1112,15 @@ Do_UpdateBaxiRunStates
     goto    SameDriveMode
 
     ; Update Drive mode flags
+    btfss   DState, RS_BaxiK
     bcf     RState, RS_BaxiK
     btfsc   DState, RS_BaxiK
     bsf     RState, RS_BaxiK
+    btfss   DState, RS_BaxiT
     bcf     RState, RS_BaxiT
     btfsc   DState, RS_BaxiT
     bsf     RState, RS_BaxiT
+    btfss   DState, RS_PIC
     bcf     RState, RS_PIC
     btfsc   DState, RS_PIC
     bsf     RState, RS_PIC
