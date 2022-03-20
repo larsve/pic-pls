@@ -8,8 +8,8 @@
 ;
 ;**********************************************************************
 
-    #include    "MCU_Defines.inc"
-    #include    "..\src\Defines.inc"
+    #include    "mcu_defines.inc"
+    #include    "defines.inc"
 
 ;***** Global declarations ********************************************
 

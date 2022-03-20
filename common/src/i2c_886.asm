@@ -10,10 +10,10 @@
 ;
 ;******************************************************************************
 
-    #include    "MCU_Defines.inc"
-    #include    "..\src\Defines.inc"
-    #include    "I2C.inc"
-    #include    "ISR_Timer.inc"
+    #include    "mcu_defines.inc"
+    #include    "defines.inc"
+    #include    "i2c.inc"
+    #include    "isr_timer.inc"
 
 ;***** Global declarations ****************************************************
 
