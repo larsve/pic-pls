@@ -32,9 +32,6 @@
     ; From ISR_Timer.asm
     Extern Timer_Tick
 
-    ; From BaxiController.asm
-    Extern BDTemp
-
 ;***** Variables ******************************************************
 BaxiData    udata
 TState      res 1       ; Triac control states
@@ -44,6 +41,7 @@ TriacSubState   res 1   ; Triac sub state
 TriacCounter    res 1   ; Triac delay counter
 FwdCnt      res 1       ; Triac Forward counter (in 10ms ticks)
 RevCnt      res 1       ; Triac Reverse counter (in 10ms ticks)
+TCTemp      res 1       ; Triac Control Temp
 
 ;***** Constants ******************************************************
 
@@ -91,13 +89,13 @@ Do_TriacControl
 
     ; "And" the xor result with input to see what changed and is currently set..
     andwf   TState, w
-    movwf   BDTemp
+    movwf   TCTemp
 
     ; Check the bits and reset the counters for the enabled bits..
     movlw   0xff
-    btfsc   BDTemp, tcFwd
+    btfsc   TCTemp, tcFwd
     movwf   FwdCnt
-    btfsc   BDTemp, tcRev
+    btfsc   TCTemp, tcRev
     movwf   RevCnt
 
     ; Save input

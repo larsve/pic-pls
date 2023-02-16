@@ -41,7 +41,6 @@
     GLOBAL  PiIdleTm
     GLOBAL  PiActTm
     GLOBAL  PiRevTm
-    GLOBAL  BDTemp
 
 
 ;***** Extern declarations ********************************************
@@ -273,8 +272,36 @@ Init_CLogic
     movlw   0x01
     movwi   FSR0++
 
+    ; 30 - Clear all
+    movlw   0x03
+    movwi   FSR0++
+    movlw   0x00
+    movwi   FSR0++
+
+    ; 31 - Clear Inmatningar
+    movlw   0x03
+    movwi   FSR0++
+    movlw   0x01
+    movwi   FSR0++
+
+    ; 32 - Clear Backnigar
+    movlw   0x03
+    movwi   FSR0++
+    movlw   0x02
+    movwi   FSR0++
+
+    ; 33 - Clear Skruvpulser
+    movlw   0x03
+    movwi   FSR0++
+    movlw   0x03
+    movwi   FSR0++
+
+    ; 2xxxxx - Set timings (too few bytes)
+    movlw   0x02
+    movwi   FSR0++
+
     ; Set size of the buffer...
-    movlw   .8                 ; 2, 8
+    movlw   .17                ; 2, 8
     movwf   RxPtr
 
 #endif
@@ -662,6 +689,12 @@ ProcessLoop
     skpnz
     goto    SetTimings
 
+    ; 3X                        ; Clear counter
+    movfw   INDF0
+    xorlw   0x03
+    skpnz
+    goto    ClearBaxiCounter
+
     ; ? - Unknown command
     clrf    RxPtr
     return
@@ -673,6 +706,8 @@ SetDriveMode
     movfw   Temp
     addlw   0x02
     subwf   RxPtr, w
+    skpc
+    clrf    RxPtr
     skpc
     return
 
@@ -702,6 +737,8 @@ SetTimings
     movfw   Temp
     addlw   0x06
     subwf   RxPtr, w
+    skpc
+    clrf    RxPtr
     skpc
     return
 
@@ -734,6 +771,73 @@ SetTimings
     goto    ProcessLoop
     clrf    RxPtr
     return
+;</editor-fold>
+
+    ;<editor-fold defaultstate="collapsed" desc="3X - ClearBaxiCounter">
+ClearBaxiCounter
+    ; 3X                        ; ClearCounter
+    ; Check that we have at least 2 bytes in buffer..
+    movfw   Temp
+    addlw   0x02
+    subwf   RxPtr, w
+    skpc
+    clrf    RxPtr
+    skpc
+    return
+
+    ; Get register that should be cleared.
+    incf    FSR0L, f
+    moviw   FSR0++
+    andlw   0x03
+    movlp   ClearBaxiCounterJumpTable
+    addlw   ClearBaxiCounterJumpTable
+    btfsc   STATUS, C
+    incf    PCLATH,F
+    movwf   PCL
+ClearBaxiCounterJumpTable
+    goto    ClearAllCounters    ; 00 - Clear all baxi counters
+    goto    ClearInmatningar    ; 01 - Clear Inmatningar
+    goto    ClearBacknigar      ; 02 - Clear Backnigar
+    goto    ClearSkruvpulser    ; 03 - Clear Skruvpulser
+
+ClearAllCounters
+    ClearCounter    Inmatningar, 4
+    ClearCounter    Backningar, 4
+    ClearCounter    SkruvPulser, 4
+    goto    ClearDone
+ClearInmatningar
+    ClearCounter    Inmatningar, 4
+    goto    ClearDone
+ClearBacknigar
+    ClearCounter    Backningar, 4
+    goto    ClearDone
+ClearSkruvpulser
+    ClearCounter    SkruvPulser, 4
+    goto    ClearDone
+
+ClearDone
+    ; Inc Temp pointer and check if we should loop or exit
+    banksel RxPtr
+    movfw   Temp
+    addlw   0x02                ; Command + status bytes
+    movwf   Temp
+    movfw   RxPtr
+    subwf   Temp, w
+    skpnc
+    clrf    RxPtr
+    skpnc
+    return
+
+    ; The 'ClearCounter' macro also uses FSR0, so we need to reset it
+    movlw   High I2cRxBuf
+    movwf   FSR0H
+    movlw   I2cRxBuf
+    movwf   FSR0L
+    movfw   Temp
+    addwf   FSR0L
+    skpnc
+    incf    FSR0H,f
+    goto    ProcessLoop
 ;</editor-fold>
 
 ;</editor-fold>
@@ -1335,6 +1439,8 @@ PicRunStateSubstate04               ; Input (reverse extra input)
     return
 
 PicRunStateSubstate05               ; Reverse
+    movfw   PiRevTm                 ; Don't enable reverse output if PiRevTm == 0
+    skpc
     bsf     RState, RS_Rev
     btfss   Timer_Tick, TimerTick_100ms
     return
