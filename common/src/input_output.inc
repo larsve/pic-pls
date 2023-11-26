@@ -88,7 +88,7 @@
     ; RA4 : 1 = Oanvänd
     ; RA3 : 1 = Oanvänd
     ; RA2 : 1 = Oanvänd
-    ; RA1 : 1 = Oanvänd
+    ; RA1 : 1 = LCD contrast (DAC1 -> OpAmp1OUT)
     ; RA0 : 0 = Running LED pin
     #define PortA_TRIS      B'11111110'     ; PORTA Data Direction Register
     #define PortA_ADC       B'00000000'     ; Bara RA2-3/AN2-3 som analoga ingångar

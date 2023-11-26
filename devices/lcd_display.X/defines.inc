@@ -13,8 +13,10 @@
 
 #define LcdDisplay
 #define ControllerLogic
-#define LCD_X 20
-#define LCD_Y 4
+;#define LCD_X 20
+;#define LCD_Y 4
+#define LCD_X 16
+#define LCD_Y 2
 #define HW_PWM
 
 #ifndef I2C_ADR

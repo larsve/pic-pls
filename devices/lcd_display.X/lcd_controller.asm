@@ -16,6 +16,7 @@
     #include    "..\..\Common\src\input_output.inc"
     #include    "..\..\Common\src\isr_timer.inc"
     #include    "..\..\Common\src\i2c.inc"
+    #include    "..\..\common\src\version_information.inc"
 
     errorlevel  -207            ; suppress message 207 from list file
 
@@ -141,77 +142,132 @@ Init_CLogic
     movwf   T2CON
 #endif
 
-    movlw   High LcdBuf
-    movwf   FSR0H
-    movlw   LcdBuf
-    movwf   FSR0L
+    ; Setup LCD contrast control using FVR, DAC and Op Amp
 
-    movlw   'H'
-    movwi   FSR0++
-    movlw   'e'
-    movwi   FSR0++
-    movlw   'l'
-    movwi   FSR0++
-    movlw   'l'
-    movwi   FSR0++
-    movlw   'o'
-    movwi   FSR0++
-    movlw   ' '
-    movwi   FSR0++
-    movlw   'W'
-    movwi   FSR0++
-    movlw   'o'
-    movwi   FSR0++
-    movlw   'r'
-    movwi   FSR0++
-    movlw   'l'
-    movwi   FSR0++
-    movlw   'd'
-    movwi   FSR0++
-    movlw   '!'
-    movwi   FSR0++
-    movlw   0x12
-    movwi   FSR0++
-    movlw   .64
-    movwi   FSR0++
-    movlw   'R'
-    movwi   FSR0++
-    movlw   'a'
-    movwi   FSR0++
-    movlw   'd'
-    movwi   FSR0++
-    movlw   ' '
-    movwi   FSR0++
-    movlw   '2'
-    movwi   FSR0++
-    movlw   0x12
-    movwi   FSR0++
-    movlw   .20
-    movwi   FSR0++
-    movlw   'R'
-    movwi   FSR0++
-    movlw   'a'
-    movwi   FSR0++
-    movlw   'd'
-    movwi   FSR0++
-    movlw   ' '
-    movwi   FSR0++
-    movlw   '3'
-    movwi   FSR0++
-    movlw   0x12
-    movwi   FSR0++
-    movlw   .84
-    movwi   FSR0++
-    movlw   'R'
-    movwi   FSR0++
-    movlw   'a'
-    movwi   FSR0++
-    movlw   'd'
-    movwi   FSR0++
-    movlw   ' '
-    movwi   FSR0++
-    movlw   '4'
-    movwi   FSR0++
+    ; Set FVR buffer gain to 2x
+    banksel FVRCON
+    movfw   FVRCON
+    andlw   B'11110011'         ; Mask CDAFVR bits
+    iorlw   B'10001000'         ; Enable FVR, Set CDAFVR bits to 2x gain
+    movwf   FVRCON
+
+    ; Configure DAC1
+    banksel DAC1CON0
+    movlw   0xa0                ; Set DAC output to ca 1280mV
+    movwf   DAC1CON1
+    movlw   B'10001000'         ; DAC enable, use FVR buffer2 output and Vss, don't connect DAC to pins
+    movwf   DAC1CON0
+
+    ; Configure RA1 pin before enabling Op Amp output
+    banksel TRISA
+    bsf     TRISA, 0x02         ; Make sure RA1 is configured as input
+    banksel ANSELA
+    bsf     ANSELA, 0x01        ; Set RA1/OpAmp1OUT pin as a analog pin
+
+    ; Configure Op Amp
+    banksel OPA1CON
+    movlw   B'11010010'         ; Enable OpAmp, connect - to output and + to DAC1
+    movwf   OPA1CON
+
+;    movlw   High LcdBuf
+;    movwf   FSR0H
+;    movlw   LcdBuf
+;    movwf   FSR0L
+;
+;    movlw   'H'
+;    movwi   FSR0++
+;    movlw   'e'
+;    movwi   FSR0++
+;    movlw   'l'
+;    movwi   FSR0++
+;    movlw   'l'
+;    movwi   FSR0++
+;    movlw   'o'
+;    movwi   FSR0++
+;    movlw   ' '
+;    movwi   FSR0++
+;    movlw   'W'
+;    movwi   FSR0++
+;    movlw   'o'
+;    movwi   FSR0++
+;    movlw   'r'
+;    movwi   FSR0++
+;    movlw   'l'
+;    movwi   FSR0++
+;    movlw   'd'
+;    movwi   FSR0++
+;    movlw   '!'
+;    movwi   FSR0++
+;    movlw   0x12
+;    movwi   FSR0++
+;    movlw   .64
+;    movwi   FSR0++
+;    movlw   'R'
+;    movwi   FSR0++
+;    movlw   'a'
+;    movwi   FSR0++
+;    movlw   'd'
+;    movwi   FSR0++
+;    movlw   ' '
+;    movwi   FSR0++
+;    movlw   '2'
+;    movwi   FSR0++
+;    movlw   0x12
+;    movwi   FSR0++
+;    movlw   .20
+;    movwi   FSR0++
+;    movlw   'R'
+;    movwi   FSR0++
+;    movlw   'a'
+;    movwi   FSR0++
+;    movlw   'd'
+;    movwi   FSR0++
+;    movlw   ' '
+;    movwi   FSR0++
+;    movlw   '3'
+;    movwi   FSR0++
+;    movlw   0x12
+;    movwi   FSR0++
+;    movlw   .84
+;    movwi   FSR0++
+;    movlw   'R'
+;    movwi   FSR0++
+;    movlw   'a'
+;    movwi   FSR0++
+;    movlw   'd'
+;    movwi   FSR0++
+;    movlw   ' '
+;    movwi   FSR0++
+;    movlw   '4'
+;    movwi   FSR0++
+;    movlw   0x12
+;    movwi   FSR0++
+;    movlw   .20
+;    movwi   FSR0++
+;    movlw   'R'
+;    movwi   FSR0++
+;    movlw   'a'
+;    movwi   FSR0++
+;    movlw   'd'
+;    movwi   FSR0++
+;    movlw   ' '
+;    movwi   FSR0++
+;    movlw   '3'
+;    movwi   FSR0++
+;    movlw   0x12
+;    movwi   FSR0++
+;    movlw   .84
+;    movwi   FSR0++
+;    movlw   'R'
+;    movwi   FSR0++
+;    movlw   'a'
+;    movwi   FSR0++
+;    movlw   'd'
+;    movwi   FSR0++
+;    movlw   ' '
+;    movwi   FSR0++
+;    movlw   '4'
+;    movwi   FSR0++
     return
 ;   4 x 20
 ;   Rad 1: 00 - 19
@@ -323,6 +379,11 @@ Do_CLogic
     skpnz
     goto    SetBacklight
 
+    movfw   INDF0
+    xorlw   0x16
+    skpnz
+    goto    SetContrast
+
     ; ...and write to LCD
     banksel PORTB
     bsf     LcdRsPin
@@ -385,6 +446,15 @@ SetBacklight
 #endif
     return
 
+SetContrast
+    banksel LcdBufCnt
+    incf    LcdBufIdx, F
+    decf    LcdBufCnt, F
+    moviw   ++FSR0
+    banksel DAC1CON1
+    movwf   DAC1CON1
+    return
+
 ;<editor-fold defaultstate="collapsed" desc="InitLcd">
 ;**********************************************************************
 ; InitLcd
@@ -395,7 +465,7 @@ InitLcd
     incf    LcdBufCnt, F
     movlp   High INIT_LCD_TABLE
     movfw   LcdBufCnt
-    andlw   0x1f
+    andlw   0x0f
     addlw   LOW INIT_LCD_TABLE
     skpnc
     incf    PCLATH, F
@@ -420,42 +490,180 @@ INIT_LCD_TABLE
     goto    InitLCD0f       ; 0x16
 
 InitLCD01
-    banksel PORTB
+    banksel PORTB           ; Function set
+                            ; RS R/w DB7 DB6 DB5 DB4 DB3 DB2 DB1 DB0
+                            ; 0  0   0   0   1   DL  N   F   -   -
+    bcf     LcdRsPin
+    bcf     LcdRwPin
+    movlw   B'00111000'     ; DL = 1 (8-bit), N = 1 (2-lines), F = 0 (5x8 dot)
+    goto    LcdWrite
+
+InitLCD02
+    banksel PORTB           ; Clear Display and set address to 0
+                            ; RS R/w DB7 DB6 DB5 DB4 DB3 DB2 DB1 DB0
+                            ; 0  0   0   0   0   0   0   0   0   1
     bcf     LcdRsPin
     bcf     LcdRwPin
     movlw   B'00000001'     ; Clear Display
     goto    LcdWrite
 
-InitLCD02
-    banksel PORTB
-    bcf     LcdRsPin
-    bcf     LcdRwPin
-    movlw   B'00001100'     ; Display On, Cursor Off, Blink Off
-    goto    LcdWrite
-
 InitLCD03
-    banksel PORTB
+    banksel PORTB           ; Return home 
+                            ; RS R/w DB7 DB6 DB5 DB4 DB3 DB2 DB1 DB0
+                            ; 0  0   0   0   0   0   0   0   1   0
     bcf     LcdRsPin
     bcf     LcdRwPin
-    movlw   B'00111100'     ; 8-bit, 2-lines, 5x10 dot
-    movlw   B'00111000'     ; 8-bit, 2-lines, 5x10 dot
+    movlw   B'00000010'
     goto    LcdWrite
 
 InitLCD04
-    banksel PORTB
-    bcf     LcdState, S_Init
-    movlw   33
-    movwf   LcdBufCnt
-
-    banksel PORTB
+    banksel PORTB           ; Entry mode set
+                            ; RS R/w DB7 DB6 DB5 DB4 DB3 DB2 DB1 DB0
+                            ; 0  0   0   0   0   0   0   1   I/D S
     bcf     LcdRsPin
     bcf     LcdRwPin
-    movlw   B'00000010'     ; Cursor home
+    movlw   B'00000110'     ; I/D = 1 (Increment), S = 0 (Don't shift display)
     goto    LcdWrite
 
 InitLCD05
+    banksel PORTB           ; Display on/off control
+                            ; RS R/w DB7 DB6 DB5 DB4 DB3 DB2 DB1 DB0
+                            ; 0  0   0   0   0   0   1   D   C   B
+    bcf     LcdRsPin
+    bcf     LcdRwPin
+    movlw   B'00001100'     ; D = 1 (Display On), C = 0 (Cursor Off), B = 0 (Blink Off)
+    goto    LcdWrite
+
 InitLCD06
+    banksel PORTB           ; Cursor/display shift
+                            ; RS R/w DB7 DB6 DB5 DB4 DB3 DB2 DB1 DB0
+                            ; 0  0   0   0   0   1   S/C R/L -   -
+    bcf     LcdRsPin
+    bcf     LcdRwPin
+    movlw   B'00010100'     ; S/C = 0 (Cursor Move), R/L = 1 (Shift to right)
+    goto    LcdWrite
+
 InitLCD07
+    banksel LcdState
+    bcf     LcdState, S_Init
+    movlw   35
+    movwf   LcdBufCnt
+
+    movlw   High LcdBuf
+    movwf   FSR0H
+    movlw   LcdBuf
+    movwf   FSR0L
+
+    movlw   0x11
+    movwi   FSR0++
+    movlw   'L'
+    movwi   FSR0++
+    movlw   'C'
+    movwi   FSR0++
+    movlw   'D'
+    movwi   FSR0++
+    movlw   ' '
+    movwi   FSR0++
+    movlw   'P'
+    movwi   FSR0++
+    movlw   'l'
+    movwi   FSR0++
+    movlw   's'
+    movwi   FSR0++
+    movlw   'P'
+    movwi   FSR0++
+    movlw   'I'
+    movwi   FSR0++
+    movlw   'C'
+    movwi   FSR0++
+    movlw   ' '
+    movwi   FSR0++
+    movlw   ' '
+    movwi   FSR0++
+    movlw   'v'
+    movwi   FSR0++
+    movlw   '0'+VerMajor
+    movwi   FSR0++
+    movlw   '.'
+    movwi   FSR0++
+    movlw   '0'+VerMinor
+    movwi   FSR0++
+    movlw   0x12
+    movwi   FSR0++
+    movlw   .64
+    movwi   FSR0++
+    movlw   'A'
+    movwi   FSR0++
+    movlw   'd'
+    movwi   FSR0++
+    movlw   'd'
+    movwi   FSR0++
+    movlw   'r'
+    movwi   FSR0++
+    movlw   ':'
+    movwi   FSR0++
+    movlw   ' '
+    movwi   FSR0++
+    movlw   '0'+I2C_ADR/10
+    movwi   FSR0++
+    movlw   '0'+I2C_ADR%10
+    movwi   FSR0++
+    movlw   ' '
+    movwi   FSR0++
+    movlw   ' '
+    movwi   FSR0++
+    movlw   '0'+LCD_X/10
+    movwi   FSR0++
+    movlw   '0'+LCD_X%10
+    movwi   FSR0++
+    movlw   ' '
+    movwi   FSR0++
+    movlw   'x'
+    movwi   FSR0++
+    movlw   ' '
+    movwi   FSR0++
+    movlw   '0'+LCD_Y
+    movwi   FSR0++
+;    movlw   0x12
+;    movwi   FSR0++
+;    movlw   .20
+;    movwi   FSR0++
+;    movlw   'R'
+;    movwi   FSR0++
+;    movlw   'a'
+;    movwi   FSR0++
+;    movlw   'd'
+;    movwi   FSR0++
+;    movlw   ' '
+;    movwi   FSR0++
+;    movlw   '3'
+;    movwi   FSR0++
+;    movlw   0x12
+;    movwi   FSR0++
+;    movlw   .84
+;    movwi   FSR0++
+;    movlw   'R'
+;    movwi   FSR0++
+;    movlw   'a'
+;    movwi   FSR0++
+;    movlw   'd'
+;    movwi   FSR0++
+;    movlw   ' '
+;    movwi   FSR0++
+;    movlw   '4'
+;    movwi   FSR0++
+    return
+;   4 x 20
+;   Rad 1: 00 - 19
+;   Rad 2: 64 - 83
+;   Rad 3: 20 - 39
+;   Rad 4: 84 - 103
+;    banksel PORTB
+;    bcf     LcdRsPin
+;    bcf     LcdRwPin
+;    movlw   B'00000010'     ; Cursor home
+;    goto    LcdWrite
+
 InitLCD08
 InitLCD09
 InitLCD0a
