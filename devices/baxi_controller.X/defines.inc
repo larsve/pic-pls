@@ -13,8 +13,8 @@
 
 #define BaxiController
 #ifndef BaxiNo
-  #define BaxiNo 1
-;  #define BaxiNo 2
+;  #define BaxiNo 1
+  #define BaxiNo 2
 #endif
 
 #if BaxiNo == 1
@@ -22,6 +22,7 @@
 #else
   #if BaxiNo == 2
     #define I2C_ADR 12
+    #define INVERT_TX_LED
   #else
     error "Invalid BaxiNo set, must be one of the following values: 1, 2."
   #endif

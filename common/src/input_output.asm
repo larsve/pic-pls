@@ -266,10 +266,18 @@ Do_Output
     ;<editor-fold defaultstate="collapsed" desc="BaxiController output">
 #ifdef BaxiController
     ; Flismagasin Ir Diod
+    #ifndef INVERT_TX_LED
     btfss   Output, outMagIrDiod
     bcf     MagIrDiodPin
     btfsc   Output, outMagIrDiod
     bsf     MagIrDiodPin
+    #endif
+    #ifdef INVERT_TX_LED
+    btfss   Output, outMagIrDiod
+    bsf     MagIrDiodPin
+    btfsc   Output, outMagIrDiod
+    bcf     MagIrDiodPin
+    #endif
 
     ; Växlingsrelä (växlar mellan BAXI/PIC styrning av inmatningsmotorn)
     btfsc   Output, outSwRel
