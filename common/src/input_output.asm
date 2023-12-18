@@ -273,10 +273,10 @@ Do_Output
     bsf     MagIrDiodPin
     #endif
     #ifdef INVERT_TX_LED
-    btfss   Output, outMagIrDiod
+    ;btfss   Output, outMagIrDiod
     bsf     MagIrDiodPin
-    btfsc   Output, outMagIrDiod
-    bcf     MagIrDiodPin
+    ;btfsc   Output, outMagIrDiod
+    ;bcf     MagIrDiodPin
     #endif
 
     ; Växlingsrelä (växlar mellan BAXI/PIC styrning av inmatningsmotorn)

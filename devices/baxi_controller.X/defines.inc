@@ -13,12 +13,13 @@
 
 #define BaxiController
 #ifndef BaxiNo
-;  #define BaxiNo 1
-  #define BaxiNo 2
+  #define BaxiNo 1
+;  #define BaxiNo 2
 #endif
 
 #if BaxiNo == 1
     #define I2C_ADR 11
+    #define INVERT_TX_LED
 #else
   #if BaxiNo == 2
     #define I2C_ADR 12
