@@ -161,7 +161,7 @@ AS_NoInpAlarm   EQU 0x02        ; Baxi alarm (Ingen inmatning)
 ;AS_RevAlarm    EQU 0x04        ; Baxi alarm (Reverserar)
 
 ; Constants
-MagAlarmDef     EQU 0xff        ; Default timeout for Mag Alarm in seconds
+MagAlarmDef     EQU 0x0a        ; Default timeout for Mag Alarm in seconds
 NoInpCntDef     EQU 255         ; Number of seconds after last signal, before the alarm is triggerd.
 SkruvMotorBrDef EQU 50          ; Time in 10ms ticks before we break power if we havent got any pulse
 DefRetryCount   EQU .3          ; Number of times to retry if we get stuck
@@ -239,7 +239,7 @@ Init_CLogic
     #endif
     movwf   AlarmTemp
 
-    ; Defaultvärde för flismagasin alrams räknare
+    ; Defaultvärde för flismagasin alarms räknare
     movlw   MagAlarmDef
     movwf   MagAlarmCnt
 
